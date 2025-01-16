@@ -1,5 +1,6 @@
 package com.example.peatus
 
+import android.graphics.Color
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -61,18 +62,18 @@ class MainActivity : AppCompatActivity() {
 
         button.setOnClickListener {
             isWhiteBackground = true
-          //  findViewById<FrameLayout>(R.id.container).setBackgroundColor(Color.WHITE)
-          //  val itemFragment = ItemFragment()
-          //  val fragmentTransaction = supportFragmentManager.beginTransaction()
-          //  fragmentTransaction.replace(R.id.container, itemFragment)
-          //  fragmentTransaction.addToBackStack(null)
-          //  fragmentTransaction.commit()
+          findViewById<FrameLayout>(R.id.container).setBackgroundColor(Color.WHITE)
+          val itemFragment = ItemFragment()
+          val fragmentTransaction = supportFragmentManager.beginTransaction()
+          fragmentTransaction.replace(R.id.container, itemFragment)
+          fragmentTransaction.addToBackStack(null)
+          fragmentTransaction.commit()
         }
 
     }
     override fun onBackPressed() {
         if (isWhiteBackground) {
-      //      findViewById<FrameLayout>(R.id.container).setBackgroundColor(Color.TRANSPARENT)
+            findViewById<FrameLayout>(R.id.container).setBackgroundColor(Color.TRANSPARENT)
             isWhiteBackground = false
         }
 
