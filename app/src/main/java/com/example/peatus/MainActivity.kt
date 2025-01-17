@@ -2,13 +2,16 @@ package com.example.peatus
 
 import android.graphics.Color
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import android.view.ViewGroup
 import android.widget.*
-import java.util.concurrent.Executors
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
+import naturalSort
 import java.net.URL
 
 
@@ -24,11 +27,25 @@ class MainActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
-        val simpleTextView = findViewById<TextView>(R.id.simpleTextView)
-        Executors.newSingleThreadExecutor().execute {
-            val json = URL("https://peatus.metaler.com.ua/regions").readText()
-            simpleTextView.post { simpleTextView.text = json }
+        val userApiUrl = ApiEndPoint.BUSES.baseUrl
+        val url1 = APIUrlBuilder.setBaseUrl(userApiUrl).setRoute("/Narva linn", "Tempo", "31").build()
+        val apiClient = ApiClient(url1)
+        lifecycleScope.launch {
+            // Call the suspend function inside the coroutine
+            val result = apiClient.fetchData()
+            // Handle the result here
+            val jsonHandler = JsonHandler()
+
+            // Десериализация и отображение данных
+            val items = jsonHandler.deserializeDynamic(result)
+            val sortedItems = naturalSort(items, "title")
+            val result2 = sortedItems.joinToString(separator = "\n")
+            val simpleTextView = findViewById<TextView>(R.id.simpleTextView)
+            simpleTextView.post { simpleTextView.text = result2 }
         }
+
+
+
         //create AutoCompleteTextView and
         val autoTextView = AutoCompleteTextView(this)
         val autoTextViewStops = AutoCompleteTextView(this)
