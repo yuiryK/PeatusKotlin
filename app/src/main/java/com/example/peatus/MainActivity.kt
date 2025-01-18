@@ -18,7 +18,7 @@ import naturalSort
 
 class MainActivity : AppCompatActivity() {
     private var isWhiteBackground: Boolean = false
-    @SuppressLint("SuspiciousIndentation")
+    @SuppressLint("SuspiciousIndentation", "ResourceType")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -34,6 +34,7 @@ class MainActivity : AppCompatActivity() {
 
         //create AutoCompleteTextView and
         val autoTextView = AutoCompleteTextView(this)
+        2000000.also { autoTextView.id = it }
         val autoTextViewStops = AutoCompleteTextView(this)
             autoTextView.setOnFocusChangeListener { _, hasFocus ->
                 if (hasFocus && autoTextView.text.isEmpty()) {
@@ -95,8 +96,8 @@ class MainActivity : AppCompatActivity() {
             val items = jsonHandler.deserializeDynamic(result)
             val sortedItems = naturalSort(items, "title")
             val result2 = sortedItems.joinToString(separator = "\n")
-            val simpleTextView = findViewById<TextView>(R.id.simpleTextView)
-            simpleTextView.post { simpleTextView.text = result2 }
+           // val simpleTextView = findViewById<TextView>(R.id.simpleTextView)
+            ///simpleTextView.post { simpleTextView.text = result2 }
             // Create adapter and add in AutoCompleteTextView
             val titles = sortedItems.map { it["title"].toString()}
             val adapter = ArrayAdapter(this@MainActivity,
@@ -124,6 +125,40 @@ class MainActivity : AppCompatActivity() {
 
             }
 
+        }
+        autoTextViewStops.setOnItemClickListener { parent, view, position, id ->
+            val selectedItem = parent.getItemAtPosition(position).toString()
+            val region = autoTextView.text.toString()
+            val userApiUrl = ApiEndPoint.BUSES.baseUrl
+            val url1 = APIUrlBuilder.setBaseUrl(userApiUrl).setRoute("/$region", selectedItem).build()
+            val apiClient = ApiClient(url1)
+            val linearLayoutBuses = findViewById<LinearLayout>(R.id.linear_layout_buses)
+            linearLayoutBuses.removeAllViews()
+            lifecycleScope.launch {
+                val result = apiClient.fetchData()
+                // Handle the result here
+                val jsonHandler = JsonHandler()
+
+                // Десериализация и отображение данных
+                val items = jsonHandler.deserializeDynamic(result)
+                val sortedItems = naturalSort(items, "title")
+                val result2 = sortedItems.joinToString(separator = "\n")
+                val titles = sortedItems.map { it["title"].toString() }
+                val linearLayout = findViewById<LinearLayout>(R.id.linear_layout_buses)
+                for (item in titles) {
+                    val button = Button(this@MainActivity) // Создаём новую кнопку
+                    button.text = item.toString()       // Устанавливаем текст кнопки
+                    button.layoutParams = LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT, // Ширина кнопки
+                        LinearLayout.LayoutParams.WRAP_CONTENT  // Высота кнопки
+                    )
+                    button.setOnClickListener {
+                        // Ваш код при нажатии на кнопку
+                        println("Вы нажали на кнопку: ")
+                    }
+                    linearLayout.addView(button)
+                }
+            }
         }
 
     }
