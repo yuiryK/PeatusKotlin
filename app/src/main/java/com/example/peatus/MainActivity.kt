@@ -146,8 +146,12 @@ class MainActivity : AppCompatActivity() {
                     button.text = item.toString()       // Устанавливаем текст кнопки
                     button.layoutParams = LinearLayout.LayoutParams(
                         LinearLayout.LayoutParams.MATCH_PARENT, // Ширина кнопки
-                        LinearLayout.LayoutParams.WRAP_CONTENT  // Высота кнопки
+                        LinearLayout.LayoutParams.WRAP_CONTENT,  // Высота кнопки
                     )
+                    val layoutBusesParameter = LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT, // Ширина кнопки
+                        LinearLayout.LayoutParams.WRAP_CONTENT,)
+                    layoutBusesParameter.setMargins(30, 30, 30, 30)
                     button.setOnClickListener {
                         val region = autoTextView.text.toString()
                         val stop = autoTextViewStops.text.toString()
