@@ -59,17 +59,20 @@ class MainActivity : AppCompatActivity() {
         button.layoutParams = layoutParams
         layoutParams.setMargins(30, 30, 30, 30)
         autoTextView.setHint(R.string.hint)
-        button.text = getString(R.string.submit)
+        button.text = getString(R.string.clear)
 
 
         button.setOnClickListener {
-            isWhiteBackground = true
-          findViewById<FrameLayout>(R.id.container).setBackgroundColor(Color.WHITE)
-          val itemFragment = ItemFragment()
-          val fragmentTransaction = supportFragmentManager.beginTransaction()
-          fragmentTransaction.replace(R.id.container, itemFragment)
-          fragmentTransaction.addToBackStack(null)
-          fragmentTransaction.commit()
+          //  autoTextView.setText("")
+            /*val adapter2 = autoTextViewStops.adapter
+            if (adapter2 != null) {
+                (adapter2 as ArrayAdapter<*>).clear()  // Очищаем адаптер
+            }*/
+            //autoTextViewStops.setText("")
+            //linearLayoutBuses.removeAllViews()
+            runOnUiThread {
+                val stopTimeText = findViewById<ListView>(R.id.stop_time_textview)
+            }
         }
 
         val linearLayout = findViewById<LinearLayout>(R.id.linear_layout)
@@ -77,7 +80,7 @@ class MainActivity : AppCompatActivity() {
         linearLayout?.addView(autoTextView)
         linearLayout?.addView(autoTextViewStops)
         linearLayout?.addView(linearLayoutBuses)
-        linearLayoutBuses?.addView(button)
+        linearLayout?.addView(button)
 
         lifecycleScope.launch {
             // Call the suspend function inside the coroutine
@@ -199,6 +202,22 @@ class MainActivity : AppCompatActivity() {
                 stoptime.adapter = adapter
             }
 
+        }
+
+        button.setOnClickListener {
+            autoTextView.setText("")
+            val adapter2 = autoTextViewStops.adapter
+            if (adapter2 != null) {
+                (adapter2 as ArrayAdapter<*>).clear()  // Очищаем адаптер
+            }
+            autoTextViewStops.setText("")
+            val linearLayoutBuses = findViewById<LinearLayout>(R.id.linear_layout_buses)
+            linearLayoutBuses.removeAllViews()
+            val listTextView = findViewById<ListView>(R.id.stop_time_textview)
+            val adapter3 = listTextView.adapter
+            if (adapter3 != null) {
+                (adapter3 as ArrayAdapter<*>).clear()  // Очищаем адаптер
+            }
         }
 
     }
