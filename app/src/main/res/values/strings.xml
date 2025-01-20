@@ -3,7 +3,8 @@
     <string name="text_view">Select area and bus station</string>
     <string name="hint">Please type language...</string>
     <string name="submit">Submit</string>
-    <string name="submitted_lang">Submitted language:</string>
+    <string name="clear">Clear</string>
+
 
     <string-array name="Languages">
         <item>Java</item>

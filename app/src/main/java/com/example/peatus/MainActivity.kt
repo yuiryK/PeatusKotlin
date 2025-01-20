@@ -12,13 +12,15 @@ import android.view.ViewGroup
 import android.widget.*
 import androidx.collection.ObjectList
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.launch
 import naturalSort
 
 
 class MainActivity : AppCompatActivity() {
     private var isWhiteBackground: Boolean = false
-    @SuppressLint("SuspiciousIndentation", "ResourceType")
+    @SuppressLint("SuspiciousIndentation", "ResourceType", "WrongViewCast")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -59,23 +61,6 @@ class MainActivity : AppCompatActivity() {
         button.text = getString(R.string.submit)
 
 
-
-        val linearLayout = findViewById<LinearLayout>(R.id.linear_layout)
-        // Add AutoCompleteTextView and button to LinearLayout
-        linearLayout?.addView(autoTextView)
-        linearLayout?.addView(autoTextViewStops)
-        linearLayout?.addView(button)
-        linearLayout?.addView(linearLayoutBuses)
-
-
-     /*   // Get the array of languages
-        val languages = resources.getStringArray(R.array.Languages)
-        // Create adapter and add in AutoCompleteTextView
-        val adapter = ArrayAdapter(this,
-            android.R.layout.simple_list_item_1, languages)
-        autoTextView.setAdapter(adapter)
-        autoTextViewStops.setAdapter(adapter)*/
-
         button.setOnClickListener {
             isWhiteBackground = true
           findViewById<FrameLayout>(R.id.container).setBackgroundColor(Color.WHITE)
@@ -85,6 +70,13 @@ class MainActivity : AppCompatActivity() {
           fragmentTransaction.addToBackStack(null)
           fragmentTransaction.commit()
         }
+
+        val linearLayout = findViewById<LinearLayout>(R.id.linear_layout)
+        // Add AutoCompleteTextView and button to LinearLayout
+        linearLayout?.addView(autoTextView)
+        linearLayout?.addView(autoTextViewStops)
+        linearLayout?.addView(linearLayoutBuses)
+        linearLayoutBuses?.addView(button)
 
         lifecycleScope.launch {
             // Call the suspend function inside the coroutine
@@ -153,8 +145,33 @@ class MainActivity : AppCompatActivity() {
                         LinearLayout.LayoutParams.WRAP_CONTENT  // Высота кнопки
                     )
                     button.setOnClickListener {
-                        // Ваш код при нажатии на кнопку
-                        println("Вы нажали на кнопку: ")
+                        val region = autoTextView.text.toString()
+                        val stop = autoTextViewStops.text.toString()
+                        val btn = button.text.toString()
+                        val userApiUrl = ApiEndPoint.BUSTIME.baseUrl
+                        val url1 =
+                            APIUrlBuilder.setBaseUrl(userApiUrl).setRoute("/$region", stop, btn)
+                                .build()
+                        val apiClient = ApiClient(url1)
+                        lifecycleScope.launch {
+                            val result = apiClient.fetchData()
+                            // Handle the result here
+                            val jsonHandler = JsonHandler()
+
+                            // Десериализация и отображение данных
+                            val items = jsonHandler.deserializeDynamic(result)
+                            val sortedItems = naturalSort(items, "title")
+                            val result2 = sortedItems.joinToString(separator = "\n")
+                            val titles = sortedItems.map { it["title"].toString() }
+                            val itemFragment = ItemFragment.newInstance(1, titles)
+                            val fragmentTransaction = supportFragmentManager.beginTransaction()
+                            fragmentTransaction.replace(R.id.container, itemFragment)
+                            fragmentTransaction.addToBackStack(null)
+                            fragmentTransaction.commit()
+                            findViewById<FrameLayout>(R.id.container).setBackgroundColor(Color.WHITE)
+                            isWhiteBackground = true
+
+                        }
                     }
                     linearLayout.addView(button)
                 }

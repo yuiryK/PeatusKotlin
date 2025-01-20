@@ -8,20 +8,18 @@ import androidx.recyclerview.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import com.example.peatus.placeholder.PlaceholderContent
 
-/**
- * A fragment representing a list of Items.
- */
 class ItemFragment : Fragment() {
 
     private var columnCount = 1
+    private var stringList: List<String> = listOf() // Пустой список по умолчанию
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         arguments?.let {
             columnCount = it.getInt(ARG_COLUMN_COUNT)
+            stringList = it.getStringArrayList(ARG_STRING_LIST) ?: listOf() // Получаем список строк
         }
     }
 
@@ -31,30 +29,28 @@ class ItemFragment : Fragment() {
     ): View? {
         val view = inflater.inflate(R.layout.fragment_item_list, container, false)
 
-        // Set the adapter
         if (view is RecyclerView) {
             with(view) {
                 layoutManager = when {
                     columnCount <= 1 -> LinearLayoutManager(context)
                     else -> GridLayoutManager(context, columnCount)
                 }
-                adapter = MyItemRecyclerViewAdapter(PlaceholderContent.ITEMS)
+                adapter = MyItemRecyclerViewAdapter(stringList)
             }
         }
         return view
     }
 
     companion object {
-
-        // TODO: Customize parameter argument names
         const val ARG_COLUMN_COUNT = "column-count"
+        const val ARG_STRING_LIST = "string-list"
 
-        // TODO: Customize parameter initialization
-        @JvmStatic
-        fun newInstance(columnCount: Int) =
+       // @JvmStatic
+        fun newInstance(columnCount: Int, stringList: List<String>) =
             ItemFragment().apply {
                 arguments = Bundle().apply {
                     putInt(ARG_COLUMN_COUNT, columnCount)
+                    putStringArrayList(ARG_STRING_LIST, ArrayList(stringList))
                 }
             }
     }
