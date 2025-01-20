@@ -42,18 +42,27 @@
         android:layout_marginTop="50dp"
         android:background="@color/light_gray">
 
-        <TextView
-            android:id="@+id/simpleTextView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Guga"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
     </LinearLayout>
 
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/stop_time_layout"
+        app:layout_constraintTop_toBottomOf="@id/linear_layout_buses"
+        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginTop="50dp">
+
+    <ListView
+        android:id="@+id/stop_time_textview"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Guga"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+    </LinearLayout>
 
     <FrameLayout
         android:id="@+id/container"

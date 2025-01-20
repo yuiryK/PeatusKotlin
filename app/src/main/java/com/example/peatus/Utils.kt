@@ -1,3 +1,5 @@
+import org.json.JSONArray
+
 fun naturalCompare(str1: String, str2: String): Int {
     val regex = """(\D+|\d+)""".toRegex()
 
@@ -33,4 +35,28 @@ fun naturalSort(items: List<Map<String, Any>>, key: String): List<Map<String, An
         val value2 = map2[key].toString()
         naturalCompare(value1, value2)
     }
+}
+
+// Функция для преобразования JSON в отформатированные строки
+fun parseJsonToFormattedStrings(jsonString: String): List<String> {
+    val jsonArray = JSONArray(jsonString)
+    val resultList = mutableListOf<String>()
+
+    for (i in 0 until jsonArray.length()) {
+        val jsonObject = jsonArray.getJSONObject(i)
+
+        // Извлекаем значения и формируем строку
+        val title = jsonObject.getString("title")
+        val routeLongName = jsonObject.getString("route_long_name")
+        val adjustedDate = jsonObject.getString("adjusted_date")
+        val adjustedTime = jsonObject.getString("adjusted_time")
+
+        // Формируем строку для добавления в список
+        val formattedString = "$title $routeLongName $adjustedDate $adjustedTime"
+
+        // Добавляем строку в список
+        resultList.add(formattedString)
+    }
+
+    return resultList
 }

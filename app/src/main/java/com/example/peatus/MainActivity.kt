@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.launch
 import naturalSort
+import parseJsonToFormattedStrings
 
 
 class MainActivity : AppCompatActivity() {
@@ -176,6 +177,28 @@ class MainActivity : AppCompatActivity() {
                     linearLayout.addView(button)
                 }
             }
+            val selectedItem2 = parent.getItemAtPosition(position).toString()
+            val region2 = autoTextView.text.toString()
+            val userApiUrl2 = ApiEndPoint.STOPTIME.baseUrl
+            val url2 = APIUrlBuilder.setBaseUrl(userApiUrl2).setRoute("/$region2", selectedItem2).build()
+            val apiClient2 = ApiClient(url2)
+            lifecycleScope.launch {
+                val result = apiClient2.fetchData()
+                // Handle the result here
+                val jsonHandler = JsonHandler()
+
+                // Десериализация и отображение данных
+                val items = jsonHandler.deserializeDynamic(result)
+                val sortedItems = naturalSort(items, "title")
+                val result2 = sortedItems.joinToString(separator = "\n")
+                //val titles = sortedItems.map { it["title"].toString() }
+                val titles = parseJsonToFormattedStrings(result)
+                val adapter = ArrayAdapter(this@MainActivity,
+                    android.R.layout.simple_list_item_1, titles)
+                val stoptime = findViewById<ListView>(R.id.stop_time_textview)
+                stoptime.adapter = adapter
+            }
+
         }
 
     }
