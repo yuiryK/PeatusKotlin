@@ -3,17 +3,13 @@ package com.example.peatus
 import android.annotation.SuppressLint
 import android.graphics.Color
 import android.os.Bundle
-import android.view.KeyEvent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import android.view.ViewGroup
 import android.widget.*
-import androidx.collection.ObjectList
 import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.launch
 import naturalSort
 import parseJsonToFormattedStrings
@@ -62,19 +58,6 @@ class MainActivity : AppCompatActivity() {
         button.text = getString(R.string.clear)
 
 
-        button.setOnClickListener {
-          //  autoTextView.setText("")
-            /*val adapter2 = autoTextViewStops.adapter
-            if (adapter2 != null) {
-                (adapter2 as ArrayAdapter<*>).clear()  // Очищаем адаптер
-            }*/
-            //autoTextViewStops.setText("")
-            //linearLayoutBuses.removeAllViews()
-            runOnUiThread {
-                val stopTimeText = findViewById<ListView>(R.id.stop_time_textview)
-            }
-        }
-
         val linearLayout = findViewById<LinearLayout>(R.id.linear_layout)
         // Add AutoCompleteTextView and button to LinearLayout
         linearLayout?.addView(autoTextView)
@@ -91,16 +74,12 @@ class MainActivity : AppCompatActivity() {
             // Десериализация и отображение данных
             val items = jsonHandler.deserializeDynamic(result)
             val sortedItems = naturalSort(items, "title")
-            val result2 = sortedItems.joinToString(separator = "\n")
-           // val simpleTextView = findViewById<TextView>(R.id.simpleTextView)
-            ///simpleTextView.post { simpleTextView.text = result2 }
-            // Create adapter and add in AutoCompleteTextView
             val titles = sortedItems.map { it["title"].toString()}
             val adapter = ArrayAdapter(this@MainActivity,
                 android.R.layout.simple_list_item_1, titles)
             autoTextView.setAdapter(adapter)
         }
-        autoTextView.setOnItemClickListener { parent, view, position, id ->
+        autoTextView.setOnItemClickListener { parent, _, position, _ ->
             val selectedItem = parent.getItemAtPosition(position).toString()
             val userApiUrl = ApiEndPoint.STOPS.baseUrl
             val url1 = APIUrlBuilder.setBaseUrl(userApiUrl).setRoute("/$selectedItem").build()
@@ -113,7 +92,6 @@ class MainActivity : AppCompatActivity() {
                 // Десериализация и отображение данных
                 val items = jsonHandler.deserializeDynamic(result)
                 val sortedItems = naturalSort(items, "title")
-                val result2 = sortedItems.joinToString(separator = "\n")
                 val titles = sortedItems.map { it["title"].toString()}
                 val adapter = ArrayAdapter(this@MainActivity,
                     android.R.layout.simple_list_item_1, titles)
@@ -122,7 +100,7 @@ class MainActivity : AppCompatActivity() {
             }
 
         }
-        autoTextViewStops.setOnItemClickListener { parent, view, position, id ->
+        autoTextViewStops.setOnItemClickListener { parent, _, position, _ ->
             val selectedItem = parent.getItemAtPosition(position).toString()
             val region = autoTextView.text.toString()
             val userApiUrl = ApiEndPoint.BUSES.baseUrl
@@ -138,7 +116,6 @@ class MainActivity : AppCompatActivity() {
                 // Десериализация и отображение данных
                 val items = jsonHandler.deserializeDynamic(result)
                 val sortedItems = naturalSort(items, "title")
-                val result2 = sortedItems.joinToString(separator = "\n")
                 val titles = sortedItems.map { it["title"].toString() }
                 val linearLayout = findViewById<LinearLayout>(R.id.linear_layout_buses)
                 for (item in titles) {
@@ -148,10 +125,6 @@ class MainActivity : AppCompatActivity() {
                         LinearLayout.LayoutParams.MATCH_PARENT, // Ширина кнопки
                         LinearLayout.LayoutParams.WRAP_CONTENT,  // Высота кнопки
                     )
-                    val layoutBusesParameter = LinearLayout.LayoutParams(
-                        LinearLayout.LayoutParams.MATCH_PARENT, // Ширина кнопки
-                        LinearLayout.LayoutParams.WRAP_CONTENT,)
-                    layoutBusesParameter.setMargins(30, 30, 30, 30)
                     button.setOnClickListener {
                         val region = autoTextView.text.toString()
                         val stop = autoTextViewStops.text.toString()
@@ -179,6 +152,7 @@ class MainActivity : AppCompatActivity() {
                             findViewById<FrameLayout>(R.id.container).setBackgroundColor(Color.WHITE)
                             isWhiteBackground = true
 
+
                         }
                     }
                     linearLayout.addView(button)
@@ -196,9 +170,6 @@ class MainActivity : AppCompatActivity() {
 
                 // Десериализация и отображение данных
                 val items = jsonHandler.deserializeDynamic(result)
-                val sortedItems = naturalSort(items, "title")
-                val result2 = sortedItems.joinToString(separator = "\n")
-                //val titles = sortedItems.map { it["title"].toString() }
                 val titles = parseJsonToFormattedStrings(result)
                 val adapter = ArrayAdapter(this@MainActivity,
                     android.R.layout.simple_list_item_1, titles)
@@ -228,6 +199,7 @@ class MainActivity : AppCompatActivity() {
     override fun onBackPressed() {
         if (isWhiteBackground) {
             findViewById<FrameLayout>(R.id.container).setBackgroundColor(Color.TRANSPARENT)
+            ItemFragment.newInstance(1, emptyList())
             isWhiteBackground = false
         }
 
