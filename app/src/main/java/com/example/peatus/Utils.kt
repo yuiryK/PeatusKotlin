@@ -52,7 +52,7 @@ fun parseJsonToFormattedStrings(jsonString: String): List<String> {
         val adjustedTime = jsonObject.getString("adjusted_time")
 
         // Формируем строку для добавления в список
-        val formattedString = "$title $routeLongName $adjustedDate $adjustedTime"
+        val formattedString = "$title $routeLongName $adjustedTime"
 
         // Добавляем строку в список
         resultList.add(formattedString)

@@ -3,12 +3,14 @@ package com.example.peatus
 import android.annotation.SuppressLint
 import android.graphics.Color
 import android.os.Bundle
+import android.view.View
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import android.view.ViewGroup
 import android.widget.*
+import androidx.core.view.children
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import naturalSort
@@ -17,6 +19,8 @@ import parseJsonToFormattedStrings
 
 class MainActivity : AppCompatActivity() {
     private var isWhiteBackground: Boolean = false
+
+
     @SuppressLint("SuspiciousIndentation", "ResourceType", "WrongViewCast")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -27,29 +31,30 @@ class MainActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
-        val userApiUrl = ApiEndPoint.REGIONS.baseUrl
-        val url1 = APIUrlBuilder.setBaseUrl(userApiUrl).setRoute("/Narva linn", "Tempo", "31").build()
-        val apiClient = ApiClient(url1)
 
         //create AutoCompleteTextView and
         val autoTextView = AutoCompleteTextView(this)
-        2000000.also { autoTextView.id = it }
         val autoTextViewStops = AutoCompleteTextView(this)
-            autoTextView.setOnFocusChangeListener { _, hasFocus ->
-                if (hasFocus && autoTextView.text.isEmpty()) {
-                    autoTextView.showDropDown() // Показывает весь список, если текст пустой
-                }
+        autoTextView.id = View.generateViewId()
+        autoTextViewStops.id = View.generateViewId()
+        Storage.autoTextViewId = autoTextView.id
+        Storage.autoTextViewStopsId = autoTextViewStops.id
+        autoTextView.setOnFocusChangeListener { _, hasFocus ->
+            if (hasFocus && autoTextView.text.isEmpty()) {
+                autoTextView.showDropDown() // Показывает весь список, если текст пустой
             }
-            autoTextViewStops.setOnFocusChangeListener { _, hasFocus ->
-                if (hasFocus && autoTextViewStops.text.isEmpty()) {
-                    autoTextViewStops.showDropDown() // Показывает весь список, если текст пустой
+        }
+        autoTextViewStops.setOnFocusChangeListener { _, hasFocus ->
+            if (hasFocus && autoTextViewStops.text.isEmpty()) {
+                autoTextViewStops.showDropDown() // Показывает весь список, если текст пустой
             }
         }
         val button = Button(this)
         val linearLayoutBuses = LinearLayout(this)
         val layoutParams = LinearLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
-            ViewGroup.LayoutParams.WRAP_CONTENT)
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        )
         autoTextView.layoutParams = layoutParams
         autoTextViewStops.layoutParams = layoutParams
         button.layoutParams = layoutParams
@@ -65,137 +70,98 @@ class MainActivity : AppCompatActivity() {
         linearLayout?.addView(linearLayoutBuses)
         linearLayout?.addView(button)
 
-        lifecycleScope.launch {
-            // Call the suspend function inside the coroutine
-            val result = apiClient.fetchData()
-            // Handle the result here
-            val jsonHandler = JsonHandler()
+      handleRequest(ApiEndPoint.REGIONS, autoTextView, "")
 
-            // Десериализация и отображение данных
-            val items = jsonHandler.deserializeDynamic(result)
-            val sortedItems = naturalSort(items, "title")
-            val titles = sortedItems.map { it["title"].toString()}
-            val adapter = ArrayAdapter(this@MainActivity,
-                android.R.layout.simple_list_item_1, titles)
-            autoTextView.setAdapter(adapter)
-        }
         autoTextView.setOnItemClickListener { parent, _, position, _ ->
             val selectedItem = parent.getItemAtPosition(position).toString()
-            val userApiUrl = ApiEndPoint.STOPS.baseUrl
-            val url1 = APIUrlBuilder.setBaseUrl(userApiUrl).setRoute("/$selectedItem").build()
-            val apiClient = ApiClient(url1)
-            lifecycleScope.launch {
-                val result = apiClient.fetchData()
-                // Handle the result here
-                val jsonHandler = JsonHandler()
+            handleRequest(ApiEndPoint.STOPS, autoTextViewStops, "/$selectedItem")
 
-                // Десериализация и отображение данных
-                val items = jsonHandler.deserializeDynamic(result)
-                val sortedItems = naturalSort(items, "title")
-                val titles = sortedItems.map { it["title"].toString()}
-                val adapter = ArrayAdapter(this@MainActivity,
-                    android.R.layout.simple_list_item_1, titles)
-                autoTextViewStops.setAdapter(adapter)
-
-            }
 
         }
         autoTextViewStops.setOnItemClickListener { parent, _, position, _ ->
             val selectedItem = parent.getItemAtPosition(position).toString()
             val region = autoTextView.text.toString()
             val userApiUrl = ApiEndPoint.BUSES.baseUrl
-            val url1 = APIUrlBuilder.setBaseUrl(userApiUrl).setRoute("/$region", selectedItem).build()
-            val apiClient = ApiClient(url1)
+            val url =
+                APIUrlBuilder.setBaseUrl(userApiUrl).setRoute("/$region", selectedItem).build()
+            val apiClient = ApiClient(url)
             val linearLayoutBuses = findViewById<LinearLayout>(R.id.linear_layout_buses)
-            linearLayoutBuses.removeAllViews()
+                linearLayoutBuses.removeAllViews()
+
             lifecycleScope.launch {
-                val result = apiClient.fetchData()
-                // Handle the result here
-                val jsonHandler = JsonHandler()
+                 val result = apiClient.fetchData()
+                 // Handle the result here
+                 val jsonHandler = JsonHandler()
 
-                // Десериализация и отображение данных
-                val items = jsonHandler.deserializeDynamic(result)
-                val sortedItems = naturalSort(items, "title")
-                val titles = sortedItems.map { it["title"].toString() }
-                val linearLayout = findViewById<LinearLayout>(R.id.linear_layout_buses)
-                for (item in titles) {
-                    val button = Button(this@MainActivity) // Создаём новую кнопку
-                    button.text = item.toString()       // Устанавливаем текст кнопки
-                    button.layoutParams = LinearLayout.LayoutParams(
-                        LinearLayout.LayoutParams.MATCH_PARENT, // Ширина кнопки
-                        LinearLayout.LayoutParams.WRAP_CONTENT,  // Высота кнопки
-                    )
-                    button.setOnClickListener {
-                        val region = autoTextView.text.toString()
-                        val stop = autoTextViewStops.text.toString()
-                        val btn = button.text.toString()
-                        val userApiUrl = ApiEndPoint.BUSTIME.baseUrl
-                        val url1 =
-                            APIUrlBuilder.setBaseUrl(userApiUrl).setRoute("/$region", stop, btn)
-                                .build()
-                        val apiClient = ApiClient(url1)
-                        lifecycleScope.launch {
-                            val result = apiClient.fetchData()
-                            // Handle the result here
-                            val jsonHandler = JsonHandler()
+                 // Десериализация и отображение данных
+                 val items = jsonHandler.deserializeDynamic(result)
+                 val sortedItems = naturalSort(items, "title")
+                 val titles = sortedItems.map { it["title"].toString() }
+                 val linearLayout = findViewById<LinearLayout>(R.id.linear_layout_buses)
+                 for (item in titles) {
+                     val button = Button(this@MainActivity) // Создаём новую кнопку
+                     button.text = item.toString()       // Устанавливаем текст кнопки
+                     button.layoutParams = LinearLayout.LayoutParams(
+                         LinearLayout.LayoutParams.MATCH_PARENT, // Ширина кнопки
+                         LinearLayout.LayoutParams.WRAP_CONTENT,  // Высота кнопки
+                     )
+                     button.setOnClickListener {
+                         val region = autoTextView.text.toString()
+                         val stop = autoTextViewStops.text.toString()
+                         val btn = button.text.toString()
+                         val userApiUrl = ApiEndPoint.BUSTIME.baseUrl
+                         val url1 =
+                             APIUrlBuilder.setBaseUrl(userApiUrl).setRoute("/$region", stop, btn)
+                                 .build()
+                         val apiClient = ApiClient(url1)
+                         lifecycleScope.launch {
+                             val result = apiClient.fetchData()
+                             // Handle the result here
+                             val jsonHandler = JsonHandler()
 
-                            // Десериализация и отображение данных
-                            val items = jsonHandler.deserializeDynamic(result)
-                            val sortedItems = naturalSort(items, "title")
-                            val result2 = sortedItems.joinToString(separator = "\n")
-                            val titles = sortedItems.map { it["title"].toString() }
-                            val itemFragment = ItemFragment.newInstance(1, titles)
-                            val fragmentTransaction = supportFragmentManager.beginTransaction()
-                            fragmentTransaction.replace(R.id.container, itemFragment)
-                            fragmentTransaction.addToBackStack(null)
-                            fragmentTransaction.commit()
-                            findViewById<FrameLayout>(R.id.container).setBackgroundColor(Color.WHITE)
-                            isWhiteBackground = true
+                             // Десериализация и отображение данных
+                             val items = jsonHandler.deserializeDynamic(result)
+                             val sortedItems = naturalSort(items, "title")
+                             val result2 = sortedItems.joinToString(separator = "\n")
+                             val titles = sortedItems.map { it["title"].toString() }
+                             val itemFragment = ItemFragment.newInstance(1, titles)
+                             val fragmentTransaction = supportFragmentManager.beginTransaction()
+                             fragmentTransaction.replace(R.id.container, itemFragment)
+                             fragmentTransaction.addToBackStack(null)
+                             fragmentTransaction.commit()
+                             findViewById<FrameLayout>(R.id.container).setBackgroundColor(Color.WHITE)
+                             isWhiteBackground = true
 
 
-                        }
-                    }
-                    linearLayout.addView(button)
-                }
-            }
-            val selectedItem2 = parent.getItemAtPosition(position).toString()
-            val region2 = autoTextView.text.toString()
-            val userApiUrl2 = ApiEndPoint.STOPTIME.baseUrl
-            val url2 = APIUrlBuilder.setBaseUrl(userApiUrl2).setRoute("/$region2", selectedItem2).build()
-            val apiClient2 = ApiClient(url2)
-            lifecycleScope.launch {
-                val result = apiClient2.fetchData()
-                // Handle the result here
-                val jsonHandler = JsonHandler()
+                         }
+                     }
+                     linearLayout.addView(button)
+                 }
+             }
 
-                // Десериализация и отображение данных
-                val items = jsonHandler.deserializeDynamic(result)
-                val titles = parseJsonToFormattedStrings(result)
-                val adapter = ArrayAdapter(this@MainActivity,
-                    android.R.layout.simple_list_item_1, titles)
-                val stoptime = findViewById<ListView>(R.id.stop_time_textview)
-                stoptime.adapter = adapter
-            }
+            val stoptime = findViewById<ListView>(R.id.stop_time_textview)
+            handleRequest(ApiEndPoint.STOPTIME, stoptime, "/$region", selectedItem)
 
         }
 
         button.setOnClickListener {
             autoTextView.setText("")
-            val adapter2 = autoTextViewStops.adapter
-            if (adapter2 != null) {
-                (adapter2 as ArrayAdapter<*>).clear()  // Очищаем адаптер
+            val adapter = autoTextViewStops.adapter
+            if (adapter != null) {
+                (adapter as ArrayAdapter<*>).clear()  // Очищаем адаптер
             }
             autoTextViewStops.setText("")
             val linearLayoutBuses = findViewById<LinearLayout>(R.id.linear_layout_buses)
             linearLayoutBuses.removeAllViews()
             val listTextView = findViewById<ListView>(R.id.stop_time_textview)
-            val adapter3 = listTextView.adapter
-            if (adapter3 != null) {
-                (adapter3 as ArrayAdapter<*>).clear()  // Очищаем адаптер
+            val adapter2 = listTextView.adapter
+            if (adapter2 != null) {
+                (adapter2 as ArrayAdapter<*>).clear()  // Очищаем адаптер
             }
         }
 
     }
+
     override fun onBackPressed() {
         if (isWhiteBackground) {
             findViewById<FrameLayout>(R.id.container).setBackgroundColor(Color.TRANSPARENT)
@@ -206,4 +172,115 @@ class MainActivity : AppCompatActivity() {
         super.onBackPressed()
     }
 
+    private fun handleRequest(apiEndpoint: ApiEndPoint, view: View, vararg routeParams: String) {
+        val getApiUrl: (ApiEndPoint) -> String = { endpoint -> endpoint.baseUrl }
+        val userApiUrl = getApiUrl(apiEndpoint)
+
+        val routePath = routeParams.joinToString(separator = "/")
+        val url = APIUrlBuilder.setBaseUrl(userApiUrl).setRoute(routePath).build()
+
+        try {
+            lifecycleScope.launch {
+                val apiClient = ApiClient(url)
+                val result = apiClient.fetchData()
+
+                val jsonHandler = JsonHandler()
+                val items = jsonHandler.deserializeDynamic(result)
+
+                jsonHandler.displayDynamicItems(items)
+
+                val sortedItems = naturalSort(items, "title")
+                val titles = sortedItems.map { it["title"].toString() }
+
+                when (view) {
+                    is AutoCompleteTextView -> {
+                        val adapter = ArrayAdapter(
+                            view.context,
+                            android.R.layout.simple_dropdown_item_1line,
+                            titles
+                        )
+                        view.setAdapter(adapter)
+                    }
+
+               /*     is LinearLayout -> {
+                        // Для каждого элемента в titles создаём кнопку и добавляем её в LinearLayout
+                        view.removeAllViews() // Очищаем старые элементы
+                        for (item in titles) {
+                            val button = Button(this@MainActivity).apply {
+                                text = item
+                                layoutParams = LinearLayout.LayoutParams(
+                                    LinearLayout.LayoutParams.MATCH_PARENT,
+                                    LinearLayout.LayoutParams.WRAP_CONTENT
+                                )
+                                setOnClickListener {
+                                    // Обработка клика на кнопке
+                                    val ids = Storage.autoTextViewId
+                                    val idStop = Storage.autoTextViewStopsId
+                                    val region =
+                                        findViewById<AutoCompleteTextView>(ids).text.toString()
+                                    val stop =
+                                        findViewById<AutoCompleteTextView>(idStop).text.toString()
+                                    val buttonText = this.text.toString()
+                                    //handleRequest(ApiEndPoint.BUSTIME, this, nText)
+                                    val getApiUrl = ApiEndPoint.BUSTIME
+                                    val userApiUrl = getApiUrl(apiEndpoint)
+                                    val routeParams = arrayOf("/$region", stop, buttonText)
+
+                                    val routePath = routeParams.joinToString(separator = "/")
+                                    val url = APIUrlBuilder.setBaseUrl(userApiUrl).setRoute(routePath).build()
+                                    lifecycleScope.launch {
+                                        val apiClient = ApiClient(url)
+                                        val result = apiClient.fetchData()
+
+                                        val jsonHandler = JsonHandler()
+                                        val items = jsonHandler.deserializeDynamic(result)
+
+                                        jsonHandler.displayDynamicItems(items)
+
+                                        val sortedItems = naturalSort(items, "title")
+                                        val titles = sortedItems.map { it["title"].toString() }
+
+                                        val itemFragment = ItemFragment.newInstance(1, titles)
+                                        val fragmentTransaction =
+                                            supportFragmentManager.beginTransaction()
+                                        fragmentTransaction.replace(R.id.container, itemFragment)
+                                        fragmentTransaction.addToBackStack(null)
+                                        fragmentTransaction.commit()
+                                        findViewById<FrameLayout>(R.id.container).setBackgroundColor(
+                                            Color.WHITE
+                                        )
+                                        isWhiteBackground = true
+                                    }
+                                }
+                            }
+                            view.addView(button)
+                        }
+
+                    }*/
+
+                    is Button -> {
+
+                    }
+                    is ListView -> {
+                        val titles = parseJsonToFormattedStrings(result)
+                        val adapter = ArrayAdapter(
+                            view.context,
+                            android.R.layout.simple_dropdown_item_1line,
+                            titles
+                        )
+                        val stoptime = findViewById<ListView>(R.id.stop_time_textview)
+                        stoptime.adapter = adapter
+                    }
+
+
+                    else -> {
+                        println("No specific handling for this view type.")
+                    }
+                }
+            }
+        }
+    catch (e: Exception) {
+            println("Error occurred: ${e.message}")
+        }
+    }
 }
