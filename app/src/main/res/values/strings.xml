@@ -1,19 +1,8 @@
 <resources>
     <string name="app_name">Peatus</string>
     <string name="text_view">Select area and bus station</string>
-    <string name="hint">Please type language...</string>
+    <string name="hint">Please type region...</string>
+    <string name="hint2">Please type bus station...</string>
     <string name="submit">Submit</string>
     <string name="clear">Clear</string>
-
-
-    <string-array name="Languages">
-        <item>Java</item>
-        <item>Kotlin</item>
-        <item>Swift</item>
-        <item>Python</item>
-        <item>Scala</item>
-        <item>Perl</item>
-        <item>Javascript</item>
-        <item>Jquery</item>
-    </string-array>
 </resources>
